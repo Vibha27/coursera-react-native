@@ -1,0 +1,35 @@
+{
+  "dependencies": {
+    "@apollo/client": "^3.0.0-beta.48",
+    "@apollo/link-context": "^2.0.0-beta.3",
+    "@react-native-community/masked-view": "^0.1.10",
+    "@react-navigation/drawer": "^5.7.7",
+    "@react-navigation/native": "^5.4.2",
+    "@react-navigation/stack": "^5.3.9",
+    "expo": "~37.0.3",
+    "expo-cli": "^3.20.9",
+    "graphql": "^15.0.0",
+    "react": "~16.9.0",
+    "react-dom": "~16.9.0",
+    "react-native": "https://github.com/expo/react-native/archive/sdk-37.0.1.tar.gz",
+    "react-native-elements": "^2.0.0",
+    "react-native-gesture-handler": "^1.6.1",
+    "react-native-reanimated": "^1.9.0",
+    "react-native-safe-area-context": "^1.0.2",
+    "react-native-screens": "^2.7.0",
+    "react-native-web": "~0.11.7",
+    "react-navigation": "^4.3.9",
+    "react-navigation-stack": "^2.5.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.8.6"
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo web",
+    "eject": "expo eject"
+  },
+  "private": true
+}
