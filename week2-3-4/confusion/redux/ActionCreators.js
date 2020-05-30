@@ -31,6 +31,25 @@ export const addComments = (comments) => ({
     payload: comments
 });
 
+export const postComment = (dishId, rating, author,comment) => (dispatch) => {
+    const newComment = {
+        dishId : dishId,
+        rating: rating,
+        author: author,
+        comment: comment
+    }
+    newComment.date = new Date().toISOString();
+    setTimeout(() => {
+        dispatch(addComment(newComment));
+    },2000)
+}
+
+export const addComment = (newComment) => ({
+    type : ActionTypes.ADD_COMMENT,
+    payload : newComment
+})
+
+
 export const fetchDishes = () => (dispatch) => {
 
     dispatch(dishesLoading());
@@ -154,21 +173,7 @@ export const addFavorite = (dishId) => ({
     payload : dishId
 })
 
-// Task 2
-export const postComment = (dishId, rating, author,comment) => (dispatch) => {
-    const newComment = {
-        dishId : dishId,
-        rating: rating,
-        author: author,
-        comment: comment
-    }
-    newComment.date = new Date().toISOString();
-    setTimeout(() => {
-        dispatch(addComment(newComment));
-    },2000)
-}
-
-export const addComment = (newComment) => ({
-    type : ActionTypes.ADD_COMMENT,
-    payload : newComment
+export const deleteFavorite = (dishId) => ({
+    type: ActionTypes.DELETE_FAVORITE,
+    payload: dishId
 })

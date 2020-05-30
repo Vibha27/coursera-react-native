@@ -1,10 +1,11 @@
 import React,{ Component } from 'react';
-import { View, Text, ScrollView, FlatList,Modal,Button,StyleSheet } from 'react-native';
+import { View, Text, ScrollView, FlatList,Modal,Button,StyleSheet,Alert,PanResponder } from 'react-native';
 import { Card,Rating,Input } from 'react-native-elements';
 import  Icon  from 'react-native-vector-icons/MaterialIcons';
 import { connect } from 'react-redux';
 import { baseUrl } from '../shared/baseUrl';
 import { postFavorite,postComment } from '../redux/ActionCreators';
+import * as Animatable from 'react-native-animatable';
 
 const mapStateToProps = state => {
     return {
@@ -16,42 +17,101 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => ({
     postFavorite : (dishId) => dispatch(postFavorite(dishId)),
-    // **Task 2***
     postComment : (dishId,rating,author,comment) => dispatch(postComment(dishId,rating,author,comment))
 })
 
 function RenderDish(props){
+
     const dish = props.dish;
+
+    handleViewRef = ref => this.view = ref;
+
+    const recognizeDrag = ({ moveX,moveY,dx,dy}) => {
+        if(dx < -200) 
+            return true;
+        else
+            return false
+    }
+
+    const recognizeComment =({moveX,moveY,dx,dy}) => {
+        if(dx > 200)
+            return true
+        else
+            return false
+    }
+
+    const panResponder = PanResponder.create({
+        onStartShouldSetPanResponder : (e,gestureState) => {
+            return true;
+        },
+        onPanResponderGrant : () => {
+            this.view.rubberBand(2000)
+            .then(endState => console.log(endState.finished ? 'finished' : 'cancelled'))
+        },
+        onPanResponderEnd : (e,gestureState) => {
+            if(recognizeDrag(gestureState)) {
+                Alert.alert(
+                    'Add to Favorites',
+                    'Are you sure to add '+dish.name+ 'to favorites ?',
+                    [
+                        {
+                            text: 'Cancel',
+                            onPress: () => console.log('Cancelled'),
+                            style : 'cancel'
+                        },
+                        {
+                            type:'OK',
+                            onPress: () => {props.favorite ? console.log('Already liked') : props.fav()}
+                        }
+                        
+                    ],
+                    {
+                        cancelable  :false
+                    }
+                    
+                )
+            
+            }
+            else if(recognizeComment(gestureState)) {
+                props.onPress()
+            }
+            return true
+
+        }
+    })
 
     if(dish!=null) {
         return (
-            <Card featuredTitle={dish.name}
-            image={{uri : baseUrl + dish.image}}
-            >
-                <Text style={{margin: 10}}>
-                    {dish.description}
-                </Text>
+            <Animatable.View animation="fadeInDown" duration={2000}
+            ref={this.handleViewRef} 
+            {...panResponder.panHandlers}>
 
-                {/* Material icon */}
-                <View style={styles.iconView}>
-                    <Icon 
-                    raised
-                    reverse
-                    name= { props.favorite ? 'favorite' : 'favorite-border' }
-                    color='#f50'
-                    onPress={ () => props.favorite ? console.log('Already liked') : props.fav()}
-                    size={30} />
+                <Card featuredTitle={dish.name}
+                image={{uri : baseUrl + dish.image}}
+                >
+                    <Text style={{margin: 10}}>
+                        {dish.description}
+                    </Text>
 
-                    {/****  Task 1*** */}
-                    <Icon 
-                    raised
-                    reverse
-                    name='create'
-                    color='#512DA8'
-                    size={30}
-                    onPress={() => props.onPress()}/>
-                </View>
-            </Card>
+                    <View style={styles.iconView}>
+                        <Icon 
+                        raised
+                        reverse
+                        name= { props.favorite ? 'favorite' : 'favorite-border' }
+                        color='#f50'
+                        onPress={ () => props.favorite ? console.log('Already liked') : props.fav()}
+                        size={30} />
+
+                        <Icon 
+                        raised
+                        reverse
+                        name='create'
+                        color='#512DA8'
+                        size={30}
+                        onPress={() => props.onPress()}/>
+                    </View>
+                </Card>
+            </Animatable.View>
         );
     }else{
         return(
@@ -64,6 +124,7 @@ function RenderComments(props) {
     const comments = props.comments;
     const renderCommentItem = ({ item, index }) => {
         return (
+            
             <View key={index} style={{margin : 10}}>
                 <Text style={{fontSize: 14}} >{item.comment}</Text>
                 <Text style={{fontSize: 12}} >{item.rating} Stars</Text>
@@ -73,13 +134,15 @@ function RenderComments(props) {
     }
 
     return(
-        <Card title='Comments'>
-            <FlatList
-            data={comments}
-            renderItem={renderCommentItem}
-            keyExtractor={item => item.id.toString()}
-            />
-        </Card>
+        <Animatable.View animation="fadeInUp" >
+            <Card title='Comments'>
+                <FlatList
+                data={comments}
+                renderItem={renderCommentItem}
+                keyExtractor={item => item.id.toString()}
+                />
+            </Card>
+        </Animatable.View>
     )
 }
 
@@ -104,7 +167,6 @@ class Dishdetail extends Component {
         this.setState({ showModal : !this.state.showModal})
     }
 
-    // ***Task 2***
     handleComment(dishId) {
 
         this.props.postComment(dishId,this.state.rating,this.state.author,this.state.comment)

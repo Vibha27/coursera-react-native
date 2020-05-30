@@ -1,9 +1,12 @@
 import React,{ Component } from 'react';
-import { View, FlatList , Text} from 'react-native';
+import { View, FlatList , Text, Alert} from 'react-native';
 import { ListItem } from 'react-native-elements';
+import  Swipeout from 'react-native-swipeout';
 import { connect } from 'react-redux';
 import { baseUrl } from '../shared/baseUrl';
 import { Loading } from './LoadingComponent';
+import {deleteFavorite} from '../redux/ActionCreators';
+import * as Animatable from 'react-native-animatable';
 
 const mapStateToProps = state => {
     return {
@@ -12,19 +15,59 @@ const mapStateToProps = state => {
     }
 }
 
+const mapDispatchToProps = dispatch => ({
+    deleteFavorite : (dishId) => dispatch(deleteFavorite(dishId))
+})
+
 
 class Favorites extends Component {
 
     render() {
+        
         const renderMenuItem = ({ item,index }) => {
+            
+            const rightButton = [
+                {
+                    text: 'Delete',
+                    type: 'delete',
+                    
+                    onPress: () => {
+                        Alert.alert(
+                            'Delete Favorite',
+                            'Are you sure you want to delete '+ item.name + '' + '?',
+                            [
+                                { text: 'Cancel', 
+                                onPress: () => console.log(item.name + 'Not deleted'),
+                                style : 'cancel'
+                                },
+                                {
+                                    text : 'Ok',
+                                    onPress: () => this.props.deleteFavorite(item.id)
+                    
+                                }
+                            ],
+                            {cancelable : false}
+                        )
+                    }
+                    
+                }
+            ];
+
             return (
-                <ListItem key={index}
-                title={item.name}
-                subtitle={item.description}
-                hideChevron={true}
-                onPress={() => this.props.navigation.navigate('Dishdetail', { dishId: item.id })} 
-                leftAvatar={{source : {uri : baseUrl + item.image }}}
-                />
+                <Swipeout right={rightButton} autoClose={true}>
+                    <Animatable.View animation="fadeInRightBig" >
+                    
+                        <ListItem
+                        key={index}
+                        title={item.name}
+                        subtitle={item.description}
+                        hideChevron={true}
+                        onPress={() => this.props.navigation.navigate('Dishdetail', { dishId: item.id })}
+                        leftAvatar={{ source: {uri: baseUrl + item.image}}}
+                        />
+                </Animatable.View>
+
+                </Swipeout>
             );
         }
     
@@ -43,14 +86,15 @@ class Favorites extends Component {
     }
     else{
         return (
-            <FlatList 
-            data={this.props.dishes.dishes.filter( dish => this.props.favorites.some(el => el === dish.id))}
-            renderItem={renderMenuItem}
-            keyExtractor={item => item.id.toString()} />
+
+                <FlatList 
+                data={this.props.dishes.dishes.filter( dish => this.props.favorites.some(el => el === dish.id))}
+                renderItem={renderMenuItem}
+                keyExtractor={item => item.id.toString()} />
         )
     }
 
     }
 }
 
-export default connect(mapStateToProps)(Favorites);
+export default connect(mapStateToProps,mapDispatchToProps)(Favorites);
