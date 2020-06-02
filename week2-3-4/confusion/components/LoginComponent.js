@@ -6,6 +6,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import * as SecureStore  from 'expo-secure-store';
 import * as ImagePicker from 'expo-image-picker';
 import * as Permissions from 'expo-permissions';
+import * as ImageManipulator from "expo-image-manipulator";
+import { Asset } from 'expo-asset';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { baseUrl } from '../shared/baseUrl';
 
@@ -105,17 +107,41 @@ class RegisterTab extends Component {
         if(cameraPermission.status === 'granted' && cameraRollPermission.status === 'granted') {
             let capturedImage = await ImagePicker.launchCameraAsync({
                 allowsEditing : true,
-                aspect : [4,3]
+                aspect : [5,5]
             });
 
             if(!capturedImage.cancelled) {
-                this.setState({
-                    imageUrl : capturedImage.uri 
-                })
+                this.processImage(capturedImage.uri);
             }
         }
     }
 
+    getImageFromGallery = async () => {
+        const cameraRollPermission = await Permissions.askAsync(Permissions.CAMERA_ROLL);
+
+        if(cameraRollPermission.status === 'granted') {
+            let capturedImage = await ImagePicker.launchImageLibraryAsync({
+                allowsEditing : true,
+                aspect : [5,5],
+                quality : 1
+            });
+
+            if(!capturedImage.cancelled) {
+                this.processImage(capturedImage.uri);
+            }
+        }
+    }
+
+    processImage = async (imageUri) => {
+        let processedImage = await ImageManipulator.manipulateAsync(
+            imageUri,
+            [
+                 { resize : { width: 400 } }
+            ],
+            { format : ImageManipulator.SaveFormat.PNG }
+        );
+        this.setState({ imageUrl : processedImage.uri})
+    }
     handleRegister() {
         console.log(JSON.stringify(this.state));
         
@@ -147,8 +173,13 @@ class RegisterTab extends Component {
                         onPress={this.getImageFromCamera}
                         />
 
+                        <Button title="Gallery"
+                        onPress={this.getImageFromGallery}
+                        />
+
+
                     </View>
-                    
+
                     <Input placeholder='Username'
                     leftIcon={<Icon name='face' size={24}/>}
                     onChangeText={(username) => this.setState({username})}
@@ -244,6 +275,7 @@ const styles = StyleSheet.create({
     imageContainer : {
         flex:1,
         flexDirection : 'row',
+        justifyContent : 'space-around', 
         margin:20
 
     },
